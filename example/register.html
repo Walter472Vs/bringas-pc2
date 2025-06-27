@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecApp - Registrarse</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .access-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .access-button {
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .access-button.primary {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
+        
+        .access-button.secondary {
+            background-color: white;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+        
+        .welcome-message {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .welcome-message p {
+            color: var(--gray-color);
+            margin-top: 10px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="login-container register-container">
+            <div class="connection-status active">
+                <i class="fas fa-wifi"></i>
+                <span>Conexión activa</span>
+            </div>
+            
+            <div class="back-button">
+                <a href="login.html"><i class="fas fa-arrow-left"></i></a>
+            </div>
+            
+            <div class="logo-container">
+                <div class="logo">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h1>SecApp</h1>
+                <p class="tagline">Únete a la comunidad de seguridad</p>
+            </div>
+            
+            <div class="welcome-message">
+                <h2>¡Crea tu cuenta!</h2>
+                <p>Usa los botones de acceso rápido para explorar la aplicación sin necesidad de completar el registro.</p>
+            </div>
+            
+            <div class="access-buttons">
+                <button id="quick-register" class="access-button primary">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Registro Instantáneo</span>
+                </button>
+                
+                <button id="guest-access" class="access-button secondary">
+                    <i class="fas fa-user-clock"></i>
+                    <span>Acceder como Invitado</span>
+                </button>
+            </div>
+            
+            <div class="login-link">
+                <p>¿Ya tienes cuenta? <a href="login.html">Inicia sesión</a></p>
+            </div>
+            
+            <div class="status-panel">
+                <div class="status-item">
+                    <i class="fas fa-shield-alt"></i>
+                    <span id="status-text">Sistema listo</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+    <script>
+        // Script para registro rápido sin completar formularios
+        document.getElementById('quick-register').addEventListener('click', function() {
+            // Mostrar indicador de carga
+            document.getElementById('status-text').textContent = 'Creando cuenta demo...';
+            
+            // Simular tiempo de registro
+            setTimeout(function() {
+                window.location.href = 'home.html';
+            }, 1000);
+        });
+        
+        // Acceso como invitado
+        document.getElementById('guest-access').addEventListener('click', function() {
+            document.getElementById('status-text').textContent = 'Accediendo como invitado...';
+            
+            setTimeout(function() {
+                window.location.href = 'home.html';
+            }, 1000);
+        });
+    </script>
+</body>
+</html> 

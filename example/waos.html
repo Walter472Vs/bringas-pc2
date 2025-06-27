@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecApp - Detalle de Incidente</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        :root {
+            --primary-color: #4285F4;
+            --secondary-color: #0F9D58;
+            --danger-color: #DB4437;
+            --warning-color: #F4B400;
+            --dark-color: #333333;
+            --gray-color: #757575;
+            --light-gray: #e0e0e0;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: var(--dark-color);
+        }
+        
+        .app-container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding-bottom: 60px;
+        }
+        
+        .incident-header {
+            background-color: var(--danger-color);
+            color: white;
+            padding: 20px 15px;
+            position: relative;
+        }
+        
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 15px;
+            color: white;
+            text-decoration: none;
+            font-size: 20px;
+        }
+        
+        .incident-title {
+            margin: 0;
+            text-align: center;
+            font-size: 20px;
+            font-weight: 600;
+            padding: 0 30px;
+        }
+        
+        .incident-time {
+            text-align: center;
+            margin-top: 5px;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: white;
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--danger-color);
+            animation: pulse 2s infinite;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .action-button {
+            border: none;
+            background: none;
+            font-size: 20px;
+            color: var(--gray-color);
+            cursor: pointer;
+        }
+        
+        #map-container {
+            height: 200px;
+            width: 100%;
+            position: relative;
+        }
+        
+        .info-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin: 15px;
+            overflow: hidden;
+        }
+        
+        .card-section {
+            padding: 15px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+        
+        .card-section:last-child {
+            border-bottom: none;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .section-title i {
+            color: var(--primary-color);
+        }
+        
+        .location-info {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        
+        .location-icon {
+            color: var(--primary-color);
+            font-size: 18px;
+            margin-top: 2px;
+        }
+        
+        .location-details {
+            flex: 1;
+        }
+        
+        .location-name {
+            margin: 0 0 5px 0;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        
+        .location-address {
+            margin: 0;
+            font-size: 13px;
+            color: var(--gray-color);
+        }
+        
+        .location-distance {
+            margin-top: 10px;
+            display: inline-block;
+            background-color: #f5f5f5;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 13px;
+            color: var(--gray-color);
+        }
+        
+        .description {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .validation-stats {
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        .stat-item {
+            flex: 1;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: var(--gray-color);
+        }
+        
+        .trust-bar {
+            height: 6px;
+            background-color: #f0f0f0;
+            border-radius: 3px;
+            position: relative;
+            margin-bottom: 15px;
+        }
+        
+        .trust-level {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background-color: var(--secondary-color);
+            border-radius: 3px;
+        }
+        
+        .primary-button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .item-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background-color: rgba(66, 133, 244, 0.1);
+            color: var(--primary-color);
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 13px;
+            margin: 5px 5px 5px 0;
+        }
+        
+        .suspect-box {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .suspect-photo {
+            width: 60px;
+            height: 60px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray-color);
+            flex-shrink: 0;
+        }
+        
+        .suspect-info {
+            flex: 1;
+        }
+        
+        .suspect-info h4 {
+            margin: 0 0 5px 0;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .suspect-info p {
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.4;
+            color: var(--dark-color);
+        }
+        
+        .comments-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .comment {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .comment-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray-color);
+            flex-shrink: 0;
+        }
+        
+        .comment-content {
+            flex: 1;
+            background-color: #f5f5f5;
+            border-radius: 12px;
+            padding: 10px;
+        }
+        
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .comment-author {
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        .comment-time {
+            font-size: 12px;
+            color: var(--gray-color);
+        }
+        
+        .comment-text {
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        
+        .authorities {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .authority-button {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background-color: #f5f5f5;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 15px;
+            font-size: 14px;
+            text-align: left;
+            cursor: pointer;
+        }
+        
+        .authority-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(66, 133, 244, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            flex-shrink: 0;
+        }
+        
+        .authority-info {
+            flex: 1;
+        }
+        
+        .authority-name {
+            font-weight: 500;
+            margin-bottom: 3px;
+        }
+        
+        .authority-address {
+            font-size: 12px;
+            color: var(--gray-color);
+            margin: 0;
+        }
+        
+        .report-list {
+            display: flex;
+            overflow-x: auto;
+            gap: 15px;
+            padding: 5px 0;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        
+        .report-list::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .report-card {
+            min-width: 180px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 12px;
+            flex-shrink: 0;
+        }
+        
+        .report-card-title {
+            margin: 0 0 5px 0;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .report-card-location {
+            font-size: 12px;
+            color: var(--gray-color);
+            margin: 0 0 8px 0;
+        }
+        
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background-color: white;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--gray-color);
+            font-size: 10px;
+        }
+        
+        .nav-item i {
+            font-size: 20px;
+            margin-bottom: 3px;
+        }
+        
+        .nav-item.active {
+            color: var(--primary-color);
+        }
+        
+        .report-button {
+            position: fixed;
+            bottom: 70px;
+            right: 20px;
+            z-index: 50;
+        }
+        
+        #report-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 24px;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 10px rgba(66, 133, 244, 0.3);
+        }
+        
+        .connection-status {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(15, 157, 88, 0.9);
+            color: white;
+            padding: 5px 10px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(0.95);
+                opacity: 0.8;
+            }
+            70% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(0.95);
+                opacity: 0.8;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Indicador de conexión -->
+        <div class="connection-status">
+            <i class="fas fa-wifi"></i>
+            <span>Conexión activa</span>
+        </div>
+        
+        <!-- Encabezado del incidente -->
+        <div class="incident-header">
+            <a href="reports.html" class="back-button">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h1 class="incident-title">Robo a mano armada</h1>
+            <div class="incident-time">Reportado hace 35 minutos</div>
+        </div>
+        
+        <!-- Barra de estado -->
+        <div class="status-bar">
+            <div class="status">
+                <div class="status-indicator"></div>
+                <span>Activo</span>
+            </div>
+            <div class="action-buttons">
+                <button class="action-button">
+                    <i class="fas fa-share-alt"></i>
+                </button>
+                <button class="action-button">
+                    <i class="fas fa-bookmark"></i>
+                </button>
+                <button class="action-button">
+                    <i class="fas fa-flag"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Mapa del incidente -->
+        <div id="map-container"></div>
+        
+        <!-- Detalles del incidente -->
+        <div class="info-card">
+            <!-- Ubicación -->
+            <div class="card-section">
+                <div class="section-title">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Ubicación</span>
+                </div>
+                <div class="location-info">
+                    <i class="fas fa-map-marker-alt location-icon"></i>
+                    <div class="location-details">
+                        <h3 class="location-name">Av. Javier Prado Este 5460</h3>
+                        <p class="location-address">La Molina, Lima - Frente al C.C. La Fontana</p>
+                        <div class="location-distance">
+                            <i class="fas fa-location-arrow"></i> A 1.2 km de tu ubicación
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Descripción -->
+            <div class="card-section">
+                <div class="section-title">
+                    <i class="fas fa-align-left"></i>
+                    <span>Descripción</span>
+                </div>
+                <p class="description">
+                    Dos individuos en motocicleta (Pulsar negra 200cc) interceptaron a un transeúnte a la salida del centro comercial. Ambos estaban armados con pistola y cuchillo. Le robaron un celular de alta gama, billetera con documentos y dinero en efectivo (aprox. S/.500). La víctima no sufrió daños físicos pero quedó en estado de shock. Los asaltantes huyeron en dirección hacia Av. La Molina.
+                </p>
+            </div>
+            
+            <!-- Validaciones -->
+            <div class="card-section">
+                <div class="section-title">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Validaciones</span>
+                </div>
+                <div class="validation-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">42</div>
+                        <div class="stat-label">Confirmaciones</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">3</div>
+                        <div class="stat-label">Rechazos</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">93%</div>
+                        <div class="stat-label">Confiabilidad</div>
+                    </div>
+                </div>
+                <div class="trust-bar">
+                    <div class="trust-level" style="width: 93%;"></div>
+                </div>
+                <button class="primary-button">
+                    <i class="fas fa-check"></i> Confirmar incidente
+                </button>
+            </div>
+            
+            <!-- Objetos robados -->
+            <div class="card-section">
+                <div class="section-title">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span>Objetos sustraídos</span>
+                </div>
+                <div>
+                    <div class="item-tag"><i class="fas fa-mobile-alt"></i> iPhone 14 Pro</div>
+                    <div class="item-tag"><i class="fas fa-wallet"></i> Billetera</div>
+                    <div class="item-tag"><i class="fas fa-credit-card"></i> Tarjetas (4)</div>
+                    <div class="item-tag"><i class="fas fa-id-card"></i> DNI</div>
+                    <div class="item-tag"><i class="fas fa-money-bill"></i> S/. 500 en efectivo</div>
+                    <div class="item-tag"><i class="fas fa-key"></i> Llaves</div>
+                </div>
+            </div>
+            
+            <!-- Sospechosos -->
+            <div class="card-section">
+                <div class="section-title">
+                    <i class="fas fa-user-secret"></i>
+                    <span>Características de los sospechosos</span>
+                </div>
+                <div class="suspect-box">
+                    <div class="suspect-photo">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="suspect-info">
+                        <h4>Sospechoso #1 (Conductor)</h4>
+                        <p>Hombre, aproximadamente 25-30 años, contextura delgada, 1.75m aproximadamente. Vestía casaca de cuero negra, jean oscuro y zapatillas negras. Casco integral negro sin visibilidad del rostro.</p>
+                    </div>
+                </div>
+                <div class="suspect-box">
+                    <div class="suspect-photo">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="suspect-info">
+                        <h4>Sospechoso #2 (Copiloto)</h4>
+                        <p>Hombre, aprox. 20-25 años, contextura atlética, 1.70m aproximadamente. Vestía polera gris, pantalones deportivos negros. Casco abierto, tez morena, cicatriz en mejilla derecha. Portaba arma de fuego.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Comentarios -->
+            <div class="card-section">
+                <div class="section-title">
+                    <i class="fas fa-comments"></i>
+                    <span>Comentarios (8)</span>
+                </div>
+                <div class="comments-section">
+                    <div class="comment">
+                        <div class="comment-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="comment-content">
+                            <div class="comment-header">
+                                <span class="comment-author">Luis Mendoza</span>
+                                <span class="comment-time">Hace 12 min</span>
+                            </div>
+                            <p class="comment-text">Vi la moto estacionada aproximadamente 15 minutos antes del incidente, parecían estar vigilando a las personas que salían del centro comercial.</p>
+                        </div>
+                    </div>
+                    <div class="comment">
+                        <div class="comment-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="comment-content">
+                            <div class="comment-header">
+                                <span class="comment-author">María Torres</span>
+                                <span class="comment-time">Hace 18 min</span>
+                            </div>
+                            <p class="comment-text">Confirmo el incidente, yo estaba en la cafetería de enfrente. La moto era una Pulsar negra con placa parcial que terminaba en 35J.</p>
+                        </div>
+                    </div>
+                    <div class="comment">
+                        <div class="comment-avatar">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <div class="comment-content">
+                            <div class="comment-header">
+                                <span class="comment-author">Oficial Ramírez</span>
+                                <span class="comment-time">Hace 5 min</span>
+                            </div>
+                            <p class="comment-text">Patrulla enviada al lugar. Se recomienda a la víctima acercarse a la comisaría para sentar la denuncia formal. Ya se ha alertado sobre esta motocicleta en otras zonas.</p>
+                        </div>
+                    </div>
+                </div>
+                <button class="primary-button" style="margin-top: 15px; background-color: #f5f5f5; color: var(--dark-color);">
+                    Ver todos los comentarios
+                </button>
+            </div>
+            
+            <!-- Autoridades -->
+            <div class="card-section">
+                <div class="section-title">
+                    <i class="fas fa-phone-alt"></i>
+                    <span>Contacto con autoridades</span>
+                </div>
+                <div class="authorities">
+                    <button class="authority-button">
+                        <div class="authority-icon">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <div class="authority-info">
+                            <div class="authority-name">Emergencias PNP</div>
+                            <p class="authority-address">Llamada gratuita a nivel nacional</p>
+                        </div>
+                        <span>105</span>
+                    </button>
+                    <button class="authority-button">
+                        <div class="authority-icon">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <div class="authority-info">
+                            <div class="authority-name">Comisaría La Molina</div>
+                            <p class="authority-address">Av. La Molina 1181</p>
+                        </div>
+                        <span>368-1871</span>
+                    </button>
+                    <button class="authority-button">
+                        <div class="authority-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="authority-info">
+                            <div class="authority-name">Serenazgo La Molina</div>
+                            <p class="authority-address">Atención inmediata</p>
+                        </div>
+                        <span>313-4495</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Recomendaciones -->
+            <div class="card-section">
+                <div class="section-title">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Recomendaciones de seguridad</span>
+                </div>
+                <ul style="padding-left: 20px; margin: 10px 0; font-size: 14px; line-height: 1.5;">
+                    <li>Evite mostrar artículos de valor (celular, joyas) al salir de centros comerciales.</li>
+                    <li>Mantente alerta a motocicletas con dos ocupantes, especialmente las de color negro.</li>
+                    <li>Si eres víctima, no opongas resistencia. Los objetos son recuperables, tu vida no.</li>
+                    <li>Reporta inmediatamente el robo y bloquea tus tarjetas y documentos.</li>
+                    <li>Si ves la moto sospechosa en la zona, repórtala inmediatamente.</li>
+                </ul>
+            </div>
+            
+            <!-- Incidentes similares -->
+            <div class="card-section">
+                <div class="section-title">
+                    <i class="fas fa-history"></i>
+                    <span>Incidentes similares en la zona</span>
+                </div>
+                <div class="report-list">
+                    <div class="report-card">
+                        <h4 class="report-card-title">Robo a mano armada</h4>
+                        <p class="report-card-location">CC. La Fontana, estacionamiento</p>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                            <span style="color: var(--gray-color);">Hace 2 días</span>
+                            <span style="color: var(--secondary-color);">90% confirmado</span>
+                        </div>
+                    </div>
+                    <div class="report-card">
+                        <h4 class="report-card-title">Arrebato de celular</h4>
+                        <p class="report-card-location">Av. La Molina cdra. 28</p>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                            <span style="color: var(--gray-color);">Hace 3 días</span>
+                            <span style="color: var(--secondary-color);">87% confirmado</span>
+                        </div>
+                    </div>
+                    <div class="report-card">
+                        <h4 class="report-card-title">Asalto por motorizados</h4>
+                        <p class="report-card-location">Av. Javier Prado Este</p>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                            <span style="color: var(--gray-color);">Hace 1 semana</span>
+                            <span style="color: var(--secondary-color);">95% confirmado</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Botón para reportar -->
+        <div class="report-button">
+            <button id="report-btn">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+        
+        <!-- Barra de navegación inferior -->
+        <nav class="bottom-nav">
+            <a href="home.html" class="nav-item">
+                <i class="fas fa-map-marked-alt"></i>
+                <span>Mapa</span>
+            </a>
+            <a href="reports.html" class="nav-item active">
+                <i class="fas fa-list"></i>
+                <span>Reportes</span>
+            </a>
+            <a href="stats.html" class="nav-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>Estadísticas</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-users"></i>
+                <span>Comunidad</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-user"></i>
+                <span>Perfil</span>
+            </a>
+        </nav>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar mapa
+            var map = L.map('map-container').setView([-12.0754, -76.9482], 15);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            // Marcador del incidente
+            var marker = L.marker([-12.0754, -76.9482]).addTo(map);
+            
+            // Radio del área afectada
+            var circle = L.circle([-12.0754, -76.9482], {
+                color: 'red',
+                fillColor: '#f03',
+                fillOpacity: 0.15,
+                radius: 200
+            }).addTo(map);
+            
+            // Deshabilitar interacciones para que sea solo visual
+            map.dragging.disable();
+            map.touchZoom.disable();
+            map.doubleClickZoom.disable();
+            map.scrollWheelZoom.disable();
+            
+            // Simular confirmación del incidente
+            document.querySelector('.primary-button').addEventListener('click', function() {
+                if (!this.classList.contains('confirmed')) {
+                    this.innerHTML = '<i class="fas fa-check-circle"></i> Incidente confirmado';
+                    this.style.backgroundColor = 'var(--secondary-color)';
+                    this.classList.add('confirmed');
+                    
+                    // Actualizar estadísticas
+                    var confirmCount = document.querySelector('.validation-stats .stat-item:first-child .stat-number');
+                    confirmCount.textContent = parseInt(confirmCount.textContent) + 1;
+                    
+                    // Actualizar porcentaje
+                    var totalConfirmations = parseInt(document.querySelector('.validation-stats .stat-item:first-child .stat-number').textContent);
+                    var totalRejections = parseInt(document.querySelector('.validation-stats .stat-item:nth-child(2) .stat-number').textContent);
+                    var percentage = Math.round((totalConfirmations / (totalConfirmations + totalRejections)) * 100);
+                    
+                    document.querySelector('.validation-stats .stat-item:nth-child(3) .stat-number').textContent = percentage + '%';
+                    document.querySelector('.trust-bar .trust-level').style.width = percentage + '%';
+                    
+                    // Mostrar notificación
+                    var notification = document.createElement('div');
+                    notification.style.position = 'fixed';
+                    notification.style.bottom = '120px';
+                    notification.style.left = '50%';
+                    notification.style.transform = 'translateX(-50%)';
+                    notification.style.backgroundColor = 'rgba(15, 157, 88, 0.9)';
+                    notification.style.color = 'white';
+                    notification.style.padding = '10px 20px';
+                    notification.style.borderRadius = '20px';
+                    notification.style.fontSize = '14px';
+                    notification.style.zIndex = '1000';
+                    notification.innerText = '¡Gracias por confirmar el incidente!';
+                    document.body.appendChild(notification);
+                    
+                    setTimeout(function() {
+                        notification.style.opacity = '0';
+                        notification.style.transition = 'opacity 0.5s ease';
+                        
+                        setTimeout(function() {
+                            document.body.removeChild(notification);
+                        }, 500);
+                    }, 3000);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

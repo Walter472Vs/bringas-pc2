@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecApp - Estadísticas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/stats.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Indicador de conexión -->
+        <div class="connection-status active">
+            <i class="fas fa-wifi"></i>
+            <span>Conexión activa</span>
+        </div>
+        
+        <!-- Encabezado -->
+        <div class="page-header">
+            <h2>Estadísticas de Seguridad</h2>
+            <div class="header-actions">
+                <button class="filter-button">
+                    <i class="fas fa-sliders-h"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Selector de periodo -->
+        <div class="period-selector">
+            <button class="period-button active" data-period="week">Semana</button>
+            <button class="period-button" data-period="month">Mes</button>
+            <button class="period-button" data-period="year">Año</button>
+        </div>
+        
+        <!-- Resumen general -->
+        <div class="stats-summary">
+            <div class="security-level-card">
+                <h3>Nivel de Seguridad</h3>
+                <div class="security-gauge">
+                    <div class="gauge-value">
+                        <span>62</span>
+                        <div class="gauge-label">Medio</div>
+                    </div>
+                    <canvas id="gaugeChart" width="120" height="120"></canvas>
+                </div>
+                <div class="security-trend">
+                    <span class="trend-label decrease">↓ 5% esta semana</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Gráfico de incidentes por tipo -->
+        <div class="stats-card">
+            <div class="stats-header">
+                <h3>Incidentes por tipo</h3>
+            </div>
+            <div class="chart-container">
+                <canvas id="incidentsByTypeChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Gráfico de incidentes por día/hora -->
+        <div class="stats-card">
+            <div class="stats-header">
+                <h3>Actividad por hora</h3>
+            </div>
+            <div class="chart-container">
+                <canvas id="activityByHourChart"></canvas>
+            </div>
+            <div class="chart-legend">
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: #DB4437;"></span>
+                    <span>Alto riesgo</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: #F4B400;"></span>
+                    <span>Riesgo moderado</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: #0F9D58;"></span>
+                    <span>Bajo riesgo</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Estadísticas detalladas -->
+        <div class="stats-metrics">
+            <div class="metric-card">
+                <div class="metric-value">78</div>
+                <div class="metric-title">Total incidentes</div>
+                <div class="metric-trend increase">
+                    <i class="fas fa-arrow-up"></i> 12%
+                </div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-value">32</div>
+                <div class="metric-title">Robos</div>
+                <div class="metric-trend increase">
+                    <i class="fas fa-arrow-up"></i> 8%
+                </div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-value">16</div>
+                <div class="metric-title">Extorsiones</div>
+                <div class="metric-trend increase">
+                    <i class="fas fa-arrow-up"></i> 25%
+                </div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-value">24</div>
+                <div class="metric-title">Sospechosos</div>
+                <div class="metric-trend decrease">
+                    <i class="fas fa-arrow-down"></i> 5%
+                </div>
+            </div>
+        </div>
+        
+        <!-- Zonas de mayor incidencia -->
+        <div class="stats-card">
+            <div class="stats-header">
+                <h3>Zonas de mayor incidencia</h3>
+            </div>
+            <div class="hotspot-list">
+                <div class="hotspot-item">
+                    <div class="hotspot-rank">1</div>
+                    <div class="hotspot-info">
+                        <div class="hotspot-name">Av. Principal / Jr. Libertad</div>
+                        <div class="hotspot-stats">
+                            <span>12 incidentes</span>
+                            <span class="hotspot-trend increase">↑ 15%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="hotspot-item">
+                    <div class="hotspot-rank">2</div>
+                    <div class="hotspot-info">
+                        <div class="hotspot-name">Mercado Central</div>
+                        <div class="hotspot-stats">
+                            <span>10 incidentes</span>
+                            <span class="hotspot-trend increase">↑ 8%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="hotspot-item">
+                    <div class="hotspot-rank">3</div>
+                    <div class="hotspot-info">
+                        <div class="hotspot-name">Parque Las Américas</div>
+                        <div class="hotspot-stats">
+                            <span>8 incidentes</span>
+                            <span class="hotspot-trend decrease">↓ 12%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="hotspot-item">
+                    <div class="hotspot-rank">4</div>
+                    <div class="hotspot-info">
+                        <div class="hotspot-name">Estación Central</div>
+                        <div class="hotspot-stats">
+                            <span>7 incidentes</span>
+                            <span class="hotspot-trend neutral">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="view-on-map-button">
+                <button>
+                    <i class="fas fa-map-marked-alt"></i>
+                    <span>Ver en mapa</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Alerta oficial -->
+        <div class="official-alert-card">
+            <div class="alert-icon">
+                <i class="fas fa-bullhorn"></i>
+            </div>
+            <div class="alert-content">
+                <h4>Alerta oficial</h4>
+                <p>La policía ha incrementado patrullaje en el sector norte. Mayor presencia entre 8PM y 2AM.</p>
+                <span class="alert-time">Hace 2 horas</span>
+            </div>
+        </div>
+        
+        <!-- Botón flotante para reportar incidentes -->
+        <div class="report-button">
+            <button id="main-report-btn">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+        
+        <!-- Barra de navegación inferior -->
+        <nav class="bottom-nav">
+            <a href="home.html" class="nav-item">
+                <i class="fas fa-map-marked-alt"></i>
+                <span>Mapa</span>
+            </a>
+            <a href="reports.html" class="nav-item">
+                <i class="fas fa-list-ul"></i>
+                <span>Reportes</span>
+            </a>
+            <a href="stats.html" class="nav-item active">
+                <i class="fas fa-chart-bar"></i>
+                <span>Estadísticas</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-users"></i>
+                <span>Comunidad</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-user"></i>
+                <span>Perfil</span>
+            </a>
+        </nav>
+    </div>
+
+    <script src="js/script.js"></script>
+    <script src="js/stats.js"></script>
+</body>
+</html> 
